@@ -1,0 +1,29 @@
+# Czech translation of django-pagination 
+# Copyright (C) 2011, django-pagination team
+# This file is distributed under the same license as the django-pagination package.
+# Martin Svoboda <martin.svoboda@gmail.com>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-02-12 17:39+0100\n"
+"PO-Revision-Date: 2011-02-12 17:39+0100\n"
+"Last-Translator: Martin Svoboda <martin.svoboda@gmail.com>\n"
+"Language-Team: CS <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n>1 && n<5 ? 1 : 2;\n"
+
+#: templates/pagination/pagination.html:5
+#: templates/pagination/pagination.html:7
+msgid "previous"
+msgstr "předchozí"
+
+#: templates/pagination/pagination.html:21
+#: templates/pagination/pagination.html:23
+msgid "next"
+msgstr "další"
