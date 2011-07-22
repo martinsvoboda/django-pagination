@@ -8,6 +8,8 @@ from django.http import Http404
 from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
 
+from __init__ import build_url
+
 register = template.Library()
 
 DEFAULT_PAGINATION = getattr(settings, 'PAGINATION_DEFAULT_PAGINATION', 20)
@@ -19,8 +21,8 @@ INVALID_PAGE_RAISES_404 = getattr(settings,
 
 def do_autopaginate(parser, token):
     """
-Splits the arguments to the autopaginate tag and formats them correctly.
-"""
+    Splits the arguments to the autopaginate tag and formats them correctly.
+    """
     split = token.split_contents()
     as_index = None
     context_var = None
@@ -55,17 +57,21 @@ Splits the arguments to the autopaginate tag and formats them correctly.
 
 class AutoPaginateNode(template.Node):
     """
-Emits the required objects to allow for Digg-style pagination.
-First, it looks in the current context for the variable specified, and using
-that object, it emits a simple ``Paginator`` and the current page object
-into the context names ``paginator`` and ``page_obj``, respectively.
-It will then replace the variable specified with only the objects for the
-current page.
-.. note::
-It is recommended to use *{% paginate %}* after using the autopaginate
-tag. If you choose not to use *{% paginate %}*, make sure to display the
-list of available pages, or else the application may seem to be buggy.
-"""
+    Emits the required objects to allow for Digg-style pagination.
+    
+    First, it looks in the current context for the variable specified, and using
+    that object, it emits a simple ``Paginator`` and the current page object 
+    into the context names ``paginator`` and ``page_obj``, respectively.
+    
+    It will then replace the variable specified with only the objects for the
+    current page.
+    
+    .. note::
+        
+        It is recommended to use *{% paginate %}* after using the autopaginate
+        tag.  If you choose not to use *{% paginate %}*, make sure to display the
+        list of available pages, or else the application may seem to be buggy.
+    """
     def __init__(self, queryset_var, paginate_by=DEFAULT_PAGINATION,
         orphans=DEFAULT_ORPHANS, context_var=None):
         self.queryset_var = template.Variable(queryset_var)
@@ -88,7 +94,7 @@ list of available pages, or else the application may seem to be buggy.
             page_obj = paginator.page(context['request'].page)
         except InvalidPage:
             if INVALID_PAGE_RAISES_404:
-                raise Http404('Invalid page requested. If DEBUG were set to ' +
+                raise Http404('Invalid page requested.  If DEBUG were set to ' +
                     'False, an HTTP 404 page would have been shown instead.')
             context[key] = []
             context['invalid_page'] = True
@@ -104,32 +110,38 @@ list of available pages, or else the application may seem to be buggy.
 
 def paginate(context, window=DEFAULT_WINDOW, hashtag='', margin=DEFAULT_MARGIN):
     """
-Renders the ``pagination/pagination.html`` template, resulting in a
-Digg-like display of the available pages, given the current page. If there
-are too many pages to be displayed before and after the current page, then
-elipses will be used to indicate the undisplayed gap between page numbers.
-Requires one argument, ``context``, which should be a dictionary-like data
-structure and must contain the following keys:
-``paginator``
-A ``Paginator`` or ``QuerySetPaginator`` object.
-``page_obj``
-This should be the result of calling the page method on the
-aforementioned ``Paginator`` or ``QuerySetPaginator`` object, given
-the current page.
-This same ``context`` dictionary-like data structure may also include:
-``getvars``
-A dictionary of all of the **GET** parameters in the current request.
-This is useful to maintain certain types of state, even when requesting
-a different page.
-Argument ``window`` is number to pages before/after current page. If window
-exceed pagination border (1 and end), window is move to left or right.
-Argument ``margin``` is number of pages on start/end of pagination.
-Example:
-window=2, margin=1, current=6 1 ... 4 5 [6] 7 8 ... 11
-window=2, margin=0, current=1 [1] 2 3 4 5 ...
-window=2, margin=0, current=5 ... 3 4 [5] 6 7 ...
-window=2, margin=0, current=11 ... 7 8 9 10 [11]
-"""
+    Renders the ``pagination/pagination.html`` template, resulting in a
+    Digg-like display of the available pages, given the current page.  If there
+    are too many pages to be displayed before and after the current page, then
+    elipses will be used to indicate the undisplayed gap between page numbers.
+    
+    Requires one argument, ``context``, which should be a dictionary-like data
+    structure and must contain the following keys:
+    
+    ``paginator``
+        A ``Paginator`` or ``QuerySetPaginator`` object.
+    
+    ``page_obj``
+        This should be the result of calling the page method on the 
+        aforementioned ``Paginator`` or ``QuerySetPaginator`` object, given
+        the current page.
+    
+    This same ``context`` dictionary-like data structure may also include:
+    
+    ``getvars``
+        A dictionary of all of the **GET** parameters in the current request.
+        This is useful to maintain certain types of state, even when requesting
+        a different page.
+    
+    Argument ``window`` is number to pages before/after current page. If window
+    exceed pagination border (1 and end), window is move to left or right.
+    Argument ``margin``` is number of pages on start/end of pagination. 
+    Example:
+        window=2, margin=1, current=6     1 ... 4 5 [6] 7 8 ... 11 
+        window=2, margin=0, current=1     [1] 2 3 4 5 ...
+        window=2, margin=0, current=5     ... 3 4 [5] 6 7 ...
+        window=2, margin=0, current=11     ... 7 8 9 10 [11]
+        """
 
     if window < 0:
         raise Exception, 'Parameter "window" cannot be less than zero'
@@ -181,8 +193,17 @@ window=2, margin=0, current=11 ... 7 8 9 10 [11]
                 pages.insert(0, None)
             if pages[-1] != paginator.num_pages:
                 pages.append(None)
+        
+        # generate page urls
+        page_obj.previous_page_url = build_url(context['request'], page_obj.previous_page_number(), hashtag)
+        page_obj.next_page_url = build_url(context['request'], page_obj.next_page_number(), hashtag)
+        for i, page in enumerate(pages):
+            if page == None:
+                continue
+            pages[i] = (page, build_url(context['request'], page, hashtag))
 
-        to_return = {
+        to_return = context
+        to_return.update({
             'MEDIA_URL': settings.MEDIA_URL,
             'pages': pages,
             'records': records,
@@ -190,15 +211,7 @@ window=2, margin=0, current=11 ... 7 8 9 10 [11]
             'paginator': paginator,
             'hashtag': hashtag,
             'is_paginated': paginator.count > paginator.per_page,
-        }
-        if 'request' in context:
-            getvars = context['request'].GET.copy()
-            if 'page' in getvars:
-                del getvars['page']
-            if len(getvars.keys()) > 0:
-                to_return['getvars'] = "&%s" % getvars.urlencode()
-            else:
-                to_return['getvars'] = ''
+        })
         return to_return
     except KeyError, AttributeError:
         return {}
