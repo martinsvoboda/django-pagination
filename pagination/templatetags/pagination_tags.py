@@ -19,8 +19,8 @@ INVALID_PAGE_RAISES_404 = getattr(settings,
 
 def do_autopaginate(parser, token):
     """
-    Splits the arguments to the autopaginate tag and formats them correctly.
-    """
+Splits the arguments to the autopaginate tag and formats them correctly.
+"""
     split = token.split_contents()
     as_index = None
     context_var = None
@@ -55,21 +55,17 @@ def do_autopaginate(parser, token):
 
 class AutoPaginateNode(template.Node):
     """
-    Emits the required objects to allow for Digg-style pagination.
-    
-    First, it looks in the current context for the variable specified, and using
-    that object, it emits a simple ``Paginator`` and the current page object 
-    into the context names ``paginator`` and ``page_obj``, respectively.
-    
-    It will then replace the variable specified with only the objects for the
-    current page.
-    
-    .. note::
-        
-        It is recommended to use *{% paginate %}* after using the autopaginate
-        tag.  If you choose not to use *{% paginate %}*, make sure to display the
-        list of available pages, or else the application may seem to be buggy.
-    """
+Emits the required objects to allow for Digg-style pagination.
+First, it looks in the current context for the variable specified, and using
+that object, it emits a simple ``Paginator`` and the current page object
+into the context names ``paginator`` and ``page_obj``, respectively.
+It will then replace the variable specified with only the objects for the
+current page.
+.. note::
+It is recommended to use *{% paginate %}* after using the autopaginate
+tag. If you choose not to use *{% paginate %}*, make sure to display the
+list of available pages, or else the application may seem to be buggy.
+"""
     def __init__(self, queryset_var, paginate_by=DEFAULT_PAGINATION,
         orphans=DEFAULT_ORPHANS, context_var=None):
         self.queryset_var = template.Variable(queryset_var)
@@ -92,7 +88,7 @@ class AutoPaginateNode(template.Node):
             page_obj = paginator.page(context['request'].page)
         except InvalidPage:
             if INVALID_PAGE_RAISES_404:
-                raise Http404('Invalid page requested.  If DEBUG were set to ' +
+                raise Http404('Invalid page requested. If DEBUG were set to ' +
                     'False, an HTTP 404 page would have been shown instead.')
             context[key] = []
             context['invalid_page'] = True
@@ -108,44 +104,38 @@ class AutoPaginateNode(template.Node):
 
 def paginate(context, window=DEFAULT_WINDOW, hashtag='', margin=DEFAULT_MARGIN):
     """
-    Renders the ``pagination/pagination.html`` template, resulting in a
-    Digg-like display of the available pages, given the current page.  If there
-    are too many pages to be displayed before and after the current page, then
-    elipses will be used to indicate the undisplayed gap between page numbers.
-    
-    Requires one argument, ``context``, which should be a dictionary-like data
-    structure and must contain the following keys:
-    
-    ``paginator``
-        A ``Paginator`` or ``QuerySetPaginator`` object.
-    
-    ``page_obj``
-        This should be the result of calling the page method on the 
-        aforementioned ``Paginator`` or ``QuerySetPaginator`` object, given
-        the current page.
-    
-    This same ``context`` dictionary-like data structure may also include:
-    
-    ``getvars``
-        A dictionary of all of the **GET** parameters in the current request.
-        This is useful to maintain certain types of state, even when requesting
-        a different page.
-    
-    Argument ``window`` is number to pages before/after current page. If window
-    exceed pagination border (1 and end), window is move to left or right.
-    Argument ``margin``` is number of pages on start/end of pagination. 
-    Example:
-        window=2, margin=1, current=6     1 ... 4 5 [6] 7 8 ... 11 
-        window=2, margin=0, current=1     [1] 2 3 4 5 ...
-        window=2, margin=0, current=5     ... 3 4 [5] 6 7 ...
-        window=2, margin=0, current=11     ... 7 8 9 10 [11]
-        """
+Renders the ``pagination/pagination.html`` template, resulting in a
+Digg-like display of the available pages, given the current page. If there
+are too many pages to be displayed before and after the current page, then
+elipses will be used to indicate the undisplayed gap between page numbers.
+Requires one argument, ``context``, which should be a dictionary-like data
+structure and must contain the following keys:
+``paginator``
+A ``Paginator`` or ``QuerySetPaginator`` object.
+``page_obj``
+This should be the result of calling the page method on the
+aforementioned ``Paginator`` or ``QuerySetPaginator`` object, given
+the current page.
+This same ``context`` dictionary-like data structure may also include:
+``getvars``
+A dictionary of all of the **GET** parameters in the current request.
+This is useful to maintain certain types of state, even when requesting
+a different page.
+Argument ``window`` is number to pages before/after current page. If window
+exceed pagination border (1 and end), window is move to left or right.
+Argument ``margin``` is number of pages on start/end of pagination.
+Example:
+window=2, margin=1, current=6 1 ... 4 5 [6] 7 8 ... 11
+window=2, margin=0, current=1 [1] 2 3 4 5 ...
+window=2, margin=0, current=5 ... 3 4 [5] 6 7 ...
+window=2, margin=0, current=11 ... 7 8 9 10 [11]
+"""
 
     if window < 0:
         raise Exception, 'Parameter "window" cannot be less than zero'
     if margin < 0:
         raise Exception, 'Parameter "margin" cannot be less than zero'
-
+    
     try:
         paginator = context['paginator']
         page_obj = context['page_obj']
@@ -160,12 +150,12 @@ def paginate(context, window=DEFAULT_WINDOW, hashtag='', margin=DEFAULT_MARGIN):
         window_start = page_obj.number - window - 1
         window_end = page_obj.number + window
         # solve if window exceeded page range
-        if window_start < 0:
-            window_end = window_end - window_start
-            window_start = 0
         if window_end > paginator.num_pages:
             window_start = window_start - (window_end - paginator.num_pages)
             window_end = paginator.num_pages
+        if window_start < 0:
+            window_end = window_end - window_start
+            window_start = 0
         pages = page_range[window_start:window_end]
 
         # figure margin and add elipses

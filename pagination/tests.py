@@ -128,6 +128,9 @@
 [1, None, 5, None, 16]
 
 
+>>> p = Paginator(range(8), 2)
+>>> paginate({'paginator': p, 'page_obj': p.page(1)}, 2, '', 1)['pages']
+[1, 2, 3, 4]
 
 
 """
